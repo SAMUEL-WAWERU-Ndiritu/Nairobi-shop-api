@@ -18,6 +18,6 @@ router.post("/change-password", auth.verifyToken, authController.changePassword)
 
 router.post("/forgot-password", validator.forgotPasswordValidator, validate, authController.forgotPassword);
 
-router.post("/reset-password",  validate, authController.resetPassword);
+router.put("/reset-password",  validate, authController.resetPassword);
 
 export default router;

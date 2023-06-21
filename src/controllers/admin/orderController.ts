@@ -227,37 +227,75 @@ const orders = await Order.find({})
   });
   }
   };
-  
+
+
+
+
   const getOrder = async (req: Request, res: Response): Promise<void> => {
-  try {
-  const order = await Order.findById(req.params.id)
-  .populate("user", "_id name")
-  .populate("product")
-  .lean();if (order) {
-    res.status(200).json({
-      status: true,
-      message: "Successfully get the order",
-      data: order,
-    });
-  } else {
-    res.status(404).json({ status: false, message: "Order not found." });
-  }
-  if (order) {
-    res.status(200).json({
-      status: true,
-      message: "Successfully get the order",
-      data: order,
-    });
-  } else {
-    res.status(404).json({ status: false, message: "Order not found." });
-  }
-} catch (error) {
-  res.status(400).json({
-  status: false,
-  message: error.message,
-  });
-  }
+    try {
+      const order = await Order.findById(req.params.id)
+        .populate("user", "_id name")
+        .populate("product")
+        .lean();
+  
+      if (order) {
+        // Access the values of colors and sizes
+        const updatedOrder = {
+          ...order,
+          orderItems: order.orderItems.map((item: any) => ({
+            ...item,
+            colors: item.colors && item.colors.join(", "), // Convert colors array to string
+            sizes: item.sizes && item.sizes.join(", "), // Convert sizes array to string
+          })),
+        };
+  
+        res.status(200).json({
+          status: true,
+          message: "Successfully get the order",
+          data: updatedOrder,
+        });
+      } else {
+        res.status(404).json({ status: false, message: "Order not found." });
+      }
+    } catch (error) {
+      res.status(400).json({
+        status: false,
+        message: error.message,
+      });
+    }
   };
+  
+  
+//   const getOrder = async (req: Request, res: Response): Promise<void> => {
+//   try {
+//   const order = await Order.findById(req.params.id)
+//   .populate("user", "_id name")
+//   .populate("product")
+//   .lean();if (order) {
+//     res.status(200).json({
+//       status: true,
+//       message: "Successfully get the order",
+//       data: order,
+//     });
+//   } else {
+//     res.status(404).json({ status: false, message: "Order not found." });
+//   }
+//   if (order) {
+//     res.status(200).json({
+//       status: true,
+//       message: "Successfully get the order",
+//       data: order,
+//     });
+//   } else {
+//     res.status(404).json({ status: false, message: "Order not found." });
+//   }
+// } catch (error) {
+//   res.status(400).json({
+//   status: false,
+//   message: error.message,
+//   });
+//   }
+//   };
   
   const updateOrder = async (req: Request, res: Response): Promise<void> => {
     try {

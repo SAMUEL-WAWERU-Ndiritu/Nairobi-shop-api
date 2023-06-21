@@ -187,33 +187,37 @@ const forgotPassword = async (req: Request, res: Response) => {
 }
   
   
-  const resetPassword = async (req: Request, res: Response) => {
-    try {
-      const { password } = req.body;
-  
-      const user: IUser = await User.findById(req.params.userId) as  IUser;
-      if (!user) {
-        return res.status(400).send('Invalid link or expired');
-      }
-  
-      const token = await Token.findOne({
-        userId: user._id,
-        token: req.params.token,
-      });
-      if (!token) {
-        return res.status(400).send('Invalid link or expired');
-      }
-  
-      user.password = password;
-      await user.save();
-      await token.delete();
-  
-      res.send('Password reset successfully.');
-    } catch (error) {
-      res.send('An error occurred');
-      console.log(error);
+const resetPassword = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const { userId, token } = req.params;
+    const { password, confirmPassword } = req.body;
+
+    const user: IUser = await User.findById(userId) as IUser;
+    console.log("This is the user selected",user)
+    if (!user) {
+      return res.status(404).send('User not found');
     }
+
+    const savedToken = await Token.findOne({ userId: user._id, token });
+    if (!savedToken) {
+      return res.status(400).send('Invalid or expired token');
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(401).send('Password does not match. Please try again.');
+    }
+
+    user.password = bcryptjs.hashSync(password);
+    console.log("This is the new password",user.password)
+    await user.save();
+
+    await savedToken.remove(); // Remove the used token
+
+    return res.status(200).send('Password reset successful.');
+  } catch (error) {
+    return res.status(400).send('Something went wrong while resetting password.');
   }
+};
 
 
 
